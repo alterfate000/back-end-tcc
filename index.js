@@ -121,7 +121,36 @@ app.post('/login', (req, res) => {
 });
 
 
+app.get('/logout', (req, res) => {
+  user_detail = "";
+  loggedIn_server = false ;
+  req.session.user = user_detail;
+  req.session.destroy();
+  res.send("logout");
+});
 
+app.get("/login_admin_check", (req, res) => {
+  //req.session.user = test;
+  console.log("loggedIn_server");
+  console.log(loggedIn_server_admin);
+  //req.session.save()
+  if (req.session.user && loggedIn_server_admin == true) {
+    console.log("if");
+    res.send({ loggedIn_admin: true, user: req.session.user });
+  } else {
+    if(loggedIn_server_admin == true){
+      console.log("esle if");
+      req.session.user = user_detail;
+      res.send({ loggedIn_admin: true, user: req.session.user });
+    }else{
+      console.log("esle else");
+      loggedIn_server_admin = false;
+      res.send({ loggedIn_admin: false });
+    }
+    //console.log("else");
+    //res.send({ loggedIn: false });
+  }
+});
 
 
 
