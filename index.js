@@ -434,7 +434,40 @@ app.delete("/delete_car/:id", (req, res) => {
 
 
 
+app.get('/test_data',(req,res)=>{
+  db.query("SELECT * FROM testdata", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
 
+app.get('/order_pair_list/:id',(req,res)=>{
+  const id = req.params.id;
+  db.query("SELECT * FROM order_pair WHERE id_job = ?", id, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/car_detail/:id',(req,res)=>{
+  const id = req.params.id;
+  db.query("SELECT * FROM `car` WHERE id_car = ?", id, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
 
 
 
