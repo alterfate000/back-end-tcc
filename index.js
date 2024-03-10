@@ -470,6 +470,46 @@ app.get('/car_detail/:id',(req,res)=>{
 });
 
 
+app.post('/add_job_list', (req, res) => {
+  const id = req.body.id;
+  const pair_detail = req.body.pair_detail; 
+  const pair_location = req.body.pair_location;
+  const id_job = req.body.id_job;
+  
+ 
+  db.query(
+    "INSERT INTO order_pair (id, pair_detail , pair_location, id_job) VALUES (?,?,?,?)",
+    [id, pair_detail , pair_location, id_job],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        //console.log("result")
+        //console.log(result)
+        res.send(result);
+      }
+    }
+  );
+});
+
+
+app.delete("/delete_job_list", (req, res) => {
+  const id = req.query.id;
+  const id_job = req.query.id_job;
+  console.log('id');
+  console.log(id);
+  console.log('id_job');
+  console.log(id_job);
+  db.query("DELETE FROM order_pair WHERE id = ?  and id_job = ? ;", [id,id_job], (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send("yes");
+    }
+  });
+});
+
+
 
 
 app.listen('3001', () => {
