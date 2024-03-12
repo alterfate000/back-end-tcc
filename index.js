@@ -184,7 +184,7 @@ app.get('/employee_list',(req,res)=>{
 });
 
 app.get('/car_list',(req,res)=>{
-  db.query("SELECT * FROM car", (err,result)=>{
+  db.query("SELECT * FROM car " , (err,result)=>{
     if(err){
       console.log(err);
     }
@@ -508,6 +508,171 @@ app.delete("/delete_job_list", (req, res) => {
     }
   });
 });
+
+
+app.get('/employee_step1_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'เคาะ' ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/employee_step2_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'เตรียมพื้น' ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/employee_step3_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'ผสมสี'  ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/employee_step4_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'พ่นสี' ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/employee_step5_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'ประกอบ' ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/employee_step6_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'ขัดสี' ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/employee_step7_list',(req,res)=>{
+  db.query("SELECT * FROM employee WHERE department = 'ทำความสะอาด' ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+
+
+
+app.get('/get_name_emp/:id_employee',(req,res)=>{
+  const id_employee = req.params.id_employee;
+  db.query("SELECT * FROM employee WHERE id_employee = ?", id_employee, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/get_name_emp/:id_employee',(req,res)=>{
+  const id_employee = req.params.id_employee;
+  db.query("SELECT * FROM employee WHERE id_employee = ?", id_employee, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.post('/save_job_detail', (req, res) => {
+  const pay_status = req.body.pay_status;
+  const car_status = req.body.car_status; 
+  const start_date = req.body.start_date;
+  const end_date = req.body.end_date;
+  const input_detail = req.body.input_detail;
+  const emp_step1 = req.body.emp_step1;
+  const emp_step2 = req.body.emp_step2;;
+  const emp_step3 = req.body.emp_step3;
+  const emp_step4 = req.body.emp_step4;
+  const emp_step5 = req.body.emp_step5;
+  const emp_step6 = req.body.emp_step6;
+  const emp_step7 = req.body.emp_step7;
+  const in_car = req.body.in_car;
+
+  db.query(
+    "INSERT INTO job_detail (payment, status , first_date, end_date, detail, step1, step2,step3,step4,step5,step6,step7,id_car ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    [pay_status, car_status , start_date, end_date, input_detail, emp_step1, emp_step2,emp_step3,emp_step4,emp_step5,emp_step6,emp_step7,in_car],
+    (err, result) => {
+      if (err) {
+        res.send('error');;
+      } else {
+        //console.log("result")
+        //console.log(result)
+        res.send('OK!');
+      }
+    }
+  );
+});
+
+app.put("/update_count_job", (req, res) => { 
+  const count_job = req.body.count_job; 
+  const id_car = req.body.id_car;
+ 
+  db.query(
+    "UPDATE car SET count_job = ? WHERE id_car = ?",
+    [count_job, id_car ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
+app.get('/job_detail_list',(req,res)=>{
+  db.query("SELECT * FROM job_detail ", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+
 
 
 
