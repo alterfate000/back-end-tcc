@@ -4,6 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const jwt = require("jsonwebtoken");
 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -20,20 +21,15 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-
-app.use(
-  session({
-    key: "ad_id",
-    secret: "subscribe",
+app.use(session({
+    secret: 'secret-key', // กำหนดคีย์สำหรับการเข้ารหัสข้อมูล Session
     resave: false,
     saveUninitialized: false,
     cookie: {
-      expires: 60 * 60 * 24,
-    },
-  })
-);
+        secure: false, // เซ็ตเป็น true เมื่อใช้ HTTPS
+        maxAge: 1000 * 60 * 60 * 24 // ระยะเวลาที่ Cookie จะหมดอายุ (24 ชั่วโมง)
+    }
+}));
 
 
 
@@ -52,26 +48,34 @@ var user_detail_admin = ""
 var loggedIn_server = false ;
 var loggedIn_server_admin = false ;
 
+var chk_ad_license = ""
 
 
 //login 
+
+app.get('/login_def', (req, res) => {
+  loggedIn_server = false;
+  chk_ad_license = "";
+});
 
 
 
 
 app.get("/login_user", (req, res) => {
   //req.session.user = test;
-  console.log("loggedIn_server");
-  console.log(loggedIn_server);
+  //console.log("loggedIn_server");
+  console.log('chk_ad_license' );
+  console.log(chk_ad_license );
   //req.session.save()
-  if (req.session.user && loggedIn_server == true) {
+  if (chk_ad_license != ""  && loggedIn_server == true) {
     console.log("if");
-    res.send({ loggedIn: true, user: req.session.user });
+    res.send({ loggedIn: true, user: chk_ad_license });
   } else {
     if(loggedIn_server == true){
       console.log("esle if");
-      req.session.user = user_detail;
-      res.send({ loggedIn: true, user: req.session.user });
+      
+      res.send({ loggedIn: true, user: 'hello11' });
+      
     }else{
       console.log("esle else");
       loggedIn_server = false;
@@ -99,13 +103,13 @@ app.post('/login', (req, res) => {
       if (result.length > 0) {
         // bcrypt.compare(res_pass, result[0].res_pass, (error, response) => {
           if (result[0].ad_pass == ad_pass) {
-            req.session.user = result;
-            user_detail = result ;
             loggedIn_server = true;
             //console.log("login");
             //console.log(test.loggedIn);
             //console.log(req.session.user);
-            //console.log(user_detail[0].res_id);
+            console.log(result[0].ad_license);
+            chk_ad_license = result[0].ad_license
+            //req.session.user = '00';
             res.send(result);
           } else {
             loggedIn_server = false;
@@ -627,14 +631,20 @@ app.post('/save_job_detail', (req, res) => {
   const emp_step5 = req.body.emp_step5;
   const emp_step6 = req.body.emp_step6;
   const emp_step7 = req.body.emp_step7;
+  const car_number = req.body.car_number;
+  const status_job = '00';
+  const car_brand = req.body.car_brand;
+  const car_vin = req.body.car_vin;
+  const car_year = req.body.car_year;
+  const list_name_emp = req.body.list_name_emp;
   const in_car = req.body.in_car;
 
   db.query(
-    "INSERT INTO job_detail (payment, status , first_date, end_date, detail, step1, step2,step3,step4,step5,step6,step7,id_car ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-    [pay_status, car_status , start_date, end_date, input_detail, emp_step1, emp_step2,emp_step3,emp_step4,emp_step5,emp_step6,emp_step7,in_car],
+    "INSERT INTO job_detail (payment, status , first_date, end_date, detail, step1, step2,step3,step4,step5,step6,step7,car_number,status_job,car_brand,car_vin,car_year,list_name_emp,id_car ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    [pay_status, car_status , start_date, end_date, input_detail, emp_step1, emp_step2,emp_step3,emp_step4,emp_step5,emp_step6,emp_step7,car_number,status_job,car_brand,car_vin,car_year,list_name_emp,in_car],
     (err, result) => {
       if (err) {
-        res.send('error');;
+        res.send('error');
       } else {
         //console.log("result")
         //console.log(result)
@@ -672,8 +682,201 @@ app.get('/job_detail_list',(req,res)=>{
   });
 });
 
+app.get('/show_job_detail/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM job_detail WHERE id_job = ?",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_order_pair/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `order_pair` WHERE order_pair.id_job = (SELECT job_detail.id_car FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+//-------------------------------------------------------------------
+
+app.get('/show_employee_step1/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step1 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_employee_step2/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step2 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_employee_step3/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step3 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_employee_step4/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step4 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_employee_step5/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step5 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_employee_step6/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step6 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/show_employee_step7/:id_job',(req,res)=>{
+  const id_job = req.params.id_job;
+  db.query("SELECT * FROM `employee` WHERE employee.id_employee = (SELECT job_detail.step7 FROM job_detail WHERE job_detail.id_job = ?);",id_job, (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+// app.get('/show_employee_step7/:id_job',(req,res)=>{
+//   const id_job = req.params.id_job;
+//   db.query("",id_job, (err,result)=>{
+//     if(err){
+//       console.log(err);
+//     }
+//     else{
+//       res.send(result);
+//     }
+//   });
+// });
 
 
+
+
+app.put("/update_status_job", (req, res) => { 
+  const status_job = req.body.status_job; 
+  const id_job = req.body.id_job;
+ 
+  db.query(
+    "UPDATE job_detail SET status_job = ? WHERE id_job = ?;",
+    [status_job, id_job ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
+app.put("/update_status_job_ceo", (req, res) => { 
+  const status_job = req.body.status_job; 
+  const id_job = req.body.id_job;
+ 
+  db.query(
+    "UPDATE job_detail SET status_job = ? WHERE id_job = ?;",
+    [status_job, id_job ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
+app.get('/job_status_00',(req,res)=>{
+  //const id_job = req.params.id_job;
+  db.query("SELECT COUNT(*) as ct FROM `job_detail` WHERE status_job = '00';", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+app.get('/job_status_01',(req,res)=>{
+  //const id_job = req.params.id_job;
+  db.query("SELECT COUNT(*) as ct FROM `job_detail` WHERE status_job = '01';", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
+
+
+app.get('/job_status_02',(req,res)=>{
+  //const id_job = req.params.id_job;
+  db.query("SELECT COUNT(*) as ct FROM `job_detail` WHERE status_job = '02';", (err,result)=>{
+    if(err){
+      console.log(err);
+    }
+    else{
+      res.send(result);
+    }
+  });
+});
 
 
 
